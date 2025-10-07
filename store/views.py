@@ -15,3 +15,7 @@ def product_list(request):
     return Response("OK") # DRF response, suitable for APIs. it can handle various data formats like JSON, XML, etc.
 # Note: only two changes are made here. 1. @api_view() decorator is added. 2. HttpResponse is replaced with Response. with these two changes, this view function is now ready to serve as an API endpoint.
 # This two changes also makes browserable API. you can visit this endpoint in browser and see the response in a nice format. 
+
+@api_view()
+def product_detail(request, id):
+    return Response(id)  # DRF response with product ID
