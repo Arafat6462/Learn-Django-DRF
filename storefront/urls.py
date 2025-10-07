@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 import debug_toolbar
-
+from store import urls
 # Customize the admin site titles
 admin.site.site_header = "Storefront Admin"
 admin.site.index_title = "Admin"
@@ -25,4 +25,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('playground.urls')),
     path('__debug__/', include(debug_toolbar.urls)),
+    path('store/', include(urls)), # Include the store app URLs
 ]
