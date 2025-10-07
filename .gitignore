@@ -1,0 +1,48 @@
+# Python
+*.pyc
+__pycache__/
+
+# Django
+db.sqlite3
+*.sqlite3
+*.log
+*.pot
+
+# Media & Static
+media/
+staticfiles/
+
+# Virtualenv
+venv/
+ENV/
+env/
+.venv/
+.env
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# dotenv
+*.env
+
+# Migrations
+**/migrations/
+**/migrations/*.pyc
+**/migrations/__pycache__/
+
+# Coverage & Test
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.cache/
+tox/
+.pytest_cache/
