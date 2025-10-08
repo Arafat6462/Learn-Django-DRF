@@ -36,13 +36,37 @@ class ProductSerializer(serializers.Serializer):
     collection_string = serializers.StringRelatedField(source='collection') # this field will show the string representation of the related collection. it uses the __str__ method of the Collection model. if we don't specify source, it will look for a field named collection_string in the model which does not exist. and in views.py, we use select_related to optimize the query and avoid additional queries when accessing the collection attribute of each product. to avoid n+1 query problem.
     nested_object_collection = CollectionSerializer(source='collection') # nested serializer to show all fields of the related collection. here source='collection' tells the serializer to use the collection field from the model for this nested_collection field.
     # Note: Sometimes after adding source, DRF shows queryset error. just restart the server to fix it.
-
     collection_link = serializers.HyperlinkedRelatedField( # new field added to show link to related collection
         source='collection', # source specifies which attribute on the object should be used to populate this field.
         queryset=Collection.objects.all(), # queryset is required for writable fields to specify which objects are valid.
         view_name='collection-detail' # view_name specifies the name of the view that should be used to generate the URL for the related object. this view should be defined in urls.py
     )
-
+    # Note: there are 4 ways to represent relationships in serializers:
+    # 1. PrimaryKeyRelatedField: shows the primary key (id) of the related object.
+    # 2. StringRelatedField: shows the string representation of the related object.
+    # 3. Nested Serializer: shows all fields of the related object using another serializer.
+    # 4. HyperlinkedRelatedField: shows a hyperlink to the related object using a URL.
 
     def calculate_tax(self, product: Product): # Here :Product is a type hint indicating that the product parameter should be an instance of the Product model. this helps with code readability and can assist IDEs in providing better autocompletion and type checking.
         return product.unit_price * Decimal(1.1) # Decimal is used to avoid floating point precision issues.
+
+
+# ModelSerializer is a shortcut that automatically creates a serializer class based on a Django model.
+# so far we have used serializers.Serializer which requires us to define all fields manually. seems repetitive the same fields in two places (model and serializer). to avoid this, we can use ModelSerializer which automatically generates fields based on the model.
+# Serializers vs ModelSerializers:
+# - Serializers: More control, manually define each field. Good for complex or non-model data.
+# - ModelSerializers: Less code, automatically generates fields from model. Good for simple CRUD operations.
+# How does ModelSerializer work?
+# - It introspects the model to determine the fields and their types.
+# - You can still add custom fields and methods as needed.
+# - You can specify which fields to include or exclude using the Meta class.
+class ProductSerializerV2(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'title', 'price', 'collection'] # specify the fields to be included in the serialized output. 
+        fields = '__all__' # This will include all fields from the model in the serialized output.
+        # Note: Using '__all__' is convenient but can expose sensitive fields unintentionally.
+        # It's often better to explicitly list the fields you want to expose.
+        # if later any new field is added to the model, it will be automatically included in the serializer output if we use '__all__'. this may not be desirable in all cases.
+
+    price = serializers.DecimalField(max_digits=6, decimal_places=2, source='unit_price') # here in Modelserializer, we can still override fields from the model or add new fields. here we override unit_price field to expose it as price in the API.
