@@ -22,9 +22,13 @@ from store.models import Product, Collection
 # - When sending data to the client (serialization), the serializer converts model instances to Python datatypes, then to JSON.
 # - When receiving data from the client (deserialization), the serializer validates and converts JSON to Python datatypes, and optionally to model instances.
 
-class CollectionSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    title = serializers.CharField(max_length=255)
+class CollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Collection
+        fields = ['id', 'title']
+        # fields = '__all__' # This will include all fields from the model in the
+    # id = serializers.IntegerField()
+    # title = serializers.CharField(max_length=255)
 
 
 class ProductSerializer(serializers.Serializer):
