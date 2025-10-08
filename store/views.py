@@ -21,8 +21,8 @@ def product_list_test(request):
 
 @api_view()
 def product_list(request):
-    queryset = Product.objects.all() # get all products from database, it returns a queryset of Product instances
-    serializer = ProductSerializer(queryset, many=True) # convert complex data (queryset of Product instances) to native python datatypes using serializer, so that it can be easily rendered to JSON, XML, etc. many=True means we are serializing a list of objects
+    queryset = Product.objects.select_related('collection').all() # get all products from database, it returns a queryset of Product instances. select_related is used to optimize the query by fetching related collection objects in the same query using a SQL join. this avoids additional queries when accessing the collection attribute of each product.
+    serializer = ProductSerializer(queryset, many=True, context={'request':request}) # convert complex data (queryset of Product instances) to native python datatypes using serializer, so that it can be easily rendered to JSON, XML, etc. many=True means we are serializing a list of objects. context is used to pass additional context to the serializer. here we pass the request object so that HyperlinkedRelatedField can generate full URLs.
     return Response(serializer.data) # return the serialized data as a response, DRF Response class takes care of rendering the data to JSON or other formats. it use jsonrenderer by default to convert python datatypes to JSON.
 
 
@@ -42,3 +42,8 @@ def product_detail(request, id):
     product = get_object_or_404(Product, pk=id) # get product from database or return 404 if not found. this also returns a error response on response if product not found. 
     serializer = ProductSerializer(product) # serialize the product instance to native python datatypes
     return Response(serializer.data) # return the serialized data as a response
+
+
+@api_view()
+def collection_detail(request, pk):
+    return Response(f"Collection id : {pk}")
