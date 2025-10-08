@@ -1,7 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from .models import Product
+from .serializers import ProductSerializer
+from rest_framework import status
 
 # view function takes input as request and returns response
 """
@@ -18,4 +21,10 @@ def product_list(request):
 
 @api_view()
 def product_detail(request, id):
-    return Response(id)  # DRF response with product ID
+    try:
+        product = Product.objects.get(pk=id) # get product from database, it returns a Product instance. pk means primary key. here pk is id.
+        serializer = ProductSerializer(product) # convert complex data (Product instance) to native python datatypes using serializer, so that it can be easily rendered to JSON, XML, etc.
+        return Response(serializer.data) # return the serialized data as a response, DRF Response class takes care of rendering the data to JSON or other formats. it use jsonrenderer by default to convert python datatypes to JSON.
+        # return HttpResponse(product) # This will return the string representation of the Product instance, which is not suitable for APIs. We need to serialize it first before sending as a response.
+    except Product.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND) # return 404 if product not found
