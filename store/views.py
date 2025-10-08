@@ -30,10 +30,18 @@ def product_list(request):
     elif request.method == 'POST':
         serializer = ProductSerializer(data=request.data) # deserialize the incoming data to a Product instance. request.data contains the parsed data from the request body. it can handle various content types like JSON, form data, etc.
         # for serialization we pass the instance or queryset to the serializer. for deserialization we pass the data to the serializer.
-        # serializer.validated_data
+       
+        # if serializer.is_valid(): # validate the incoming data against the serializer's validation rules. if the data is valid, we can proceed to save it.
+        #     serializer.validated_data # this contains the validated data after passing all validation checks. we can use this data to create or update a Product instance.
+        #     return Response('ok')
+        # else:
+        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # more concise way to write the above code:
+        serializer.is_valid(raise_exception=True) # if the data is not valid, it will raise a ValidationError which DRF will catch and return a 400 Bad Request response with the error details.
+        serializer.validated_data # this contains the validated data after passing all validation checks. we can use this data to create or update a Product instance.
         return Response('ok')
 
-    
 
 @api_view()
 def product_detail_manual_check(request, id):
