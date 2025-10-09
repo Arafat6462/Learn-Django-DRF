@@ -39,8 +39,9 @@ def product_list(request):
 
         # more concise way to write the above code:
         serializer.is_valid(raise_exception=True) # if the data is not valid, it will raise a ValidationError which DRF will catch and return a 400 Bad Request response with the error details.
-        serializer.validated_data # this contains the validated data after passing all validation checks. we can use this data to create or update a Product instance.
-        return Response('ok')
+        serializer.save() # save the validated data to create a new Product instance in the database. this method calls create() or update() method of the serializer internally.
+        # serializer.validated_data # this contains the validated data after passing all validation checks. we can use this data to create or update a Product instance.
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view()
@@ -54,12 +55,17 @@ def product_detail_manual_check(request, id):
         return Response(status=status.HTTP_404_NOT_FOUND) # return 404 if product not found
 
 # Using get_object_or_404 shortcut to simplify the above code. it tries to get the object and if not found, it raises a 404 error automatically.
-@api_view()
+@api_view(['GET', 'PUT']) # specify allowed HTTP methods for this view. if a request with a different method is made, DRF will return a 405 Method Not Allowed response automatically. by default 'GET' are allowed.
 def product_detail(request, id):
     product = get_object_or_404(Product, pk=id) # get product from database or return 404 if not found. this also returns a error response on response if product not found. 
-    serializer = ProductSerializer(product) # serialize the product instance to native python datatypes
-    return Response(serializer.data) # return the serialized data as a response
-
+    if request.method == 'GET':
+        serializer = ProductSerializer(product) # serialize the product instance to native python datatypes
+        return Response(serializer.data) # return the serialized data as a response
+    elif request.method == 'PUT':
+        serializer = ProductSerializer(product, data=request.data) # deserialize the incoming data to update the existing Product instance. request.data contains the parsed data from the request body. it can handle various content types like JSON, form data, etc. thsi will call ModelSerializer's update() method internally because we are passing an instance (product) to the serializer along with the data.
+        serializer.is_valid(raise_exception=True) # validate the incoming data against the serializer's validation rules. if the data is valid, we can proceed to save it. if the data is not valid, it will raise a ValidationError which DRF will catch and return a 400 Bad Request response with the error details.
+        serializer.save() # save the validated data to update the existing Product instance in the database. this method calls create() or update() method of the serializer internally.
+        return Response(serializer.data) # return the updated serialized data as a response
 
 @api_view()
 def collection_detail(request, pk):

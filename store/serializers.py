@@ -67,7 +67,7 @@ class ProductSerializerV2(serializers.Serializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'title', 'unit_price', 'price_with_tax', 'collection'] # specify the fields to be included in the serialized output. 
+        fields = ['id', 'title', 'description', 'slug', 'inventory', 'unit_price', 'price_with_tax', 'collection'] # specify the fields to be included in the serialized output. 
         # fields = '__all__' # This will include all fields from the model in the serialized output.
         # Note: Using '__all__' is convenient but can expose sensitive fields unintentionally. It's often better to explicitly list the fields you want to expose. if later any new field is added to the model, it will be automatically included in the serializer output if we use '__all__'. this may not be desirable in all cases.
 
@@ -75,3 +75,18 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def calculate_tax(self, product: Product): # Here :Product is a type hint indicating that the product parameter should be an instance of the Product model. this helps with code readability and can assist IDEs in providing better autocompletion and type checking.
         return product.unit_price * Decimal(1.1) # Decimal is used to avoid floating point precision issues.
+    
+    # # Override create method of ModelSerializer. this method is called when we call serializer.save() in views.py for creating a new Product instance.
+    # def create(self, validated_data): # override create method to add custom behavior during creation of a new Product instance. validated_data contains the validated data after passing all validation checks.
+    #     # return super().create(validated_data) # call the parent class's create method to perform the actual creation of the Product instance.
+    #     product = Product(**validated_data) # create a new Product instance using the validated data. **validated_data unpacks the dictionary into keyword arguments.
+    #     product.other_field = 'default value' # set a default value for other_field which is not provided by the user.
+    #     product.save() # save the Product instance to the database.
+    #     return product # return the created Product instance.
+    
+    # # Override update method of ModelSerializer. this method is called when we call serializer.save() in views.py for updating an existing Product instance.
+    # def update(self, instance, validated_data): # override update method to add custom behavior during update of an existing Product instance. instance is the existing Product instance to be updated. validated_data contains the validated data after passing all validation checks.
+    #     # return super().update(instance, validated_data) # call the parent class's update method to perform the actual update of the Product instance.
+    #     instance.unit_price = validated_data.get('unit_price') # update the unit_price field of the instance with the new value from validated_data. if unit_price is not provided in validated_data, it will keep its current value.
+    #     instance.save() # save the updated Product instance to the database.
+    #     return instance # return the updated Product instance.
