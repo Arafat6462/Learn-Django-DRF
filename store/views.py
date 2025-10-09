@@ -55,7 +55,7 @@ def product_detail_manual_check(request, id):
         return Response(status=status.HTTP_404_NOT_FOUND) # return 404 if product not found
 
 # Using get_object_or_404 shortcut to simplify the above code. it tries to get the object and if not found, it raises a 404 error automatically.
-@api_view(['GET', 'PUT']) # specify allowed HTTP methods for this view. if a request with a different method is made, DRF will return a 405 Method Not Allowed response automatically. by default 'GET' are allowed.
+@api_view(['GET', 'PUT', 'DELETE']) # specify allowed HTTP methods for this view. if a request with a different method is made, DRF will return a 405 Method Not Allowed response automatically. by default 'GET' are allowed. for 'DELETE' DRF add a delete button on web interface. and for 'PUT' it adds a form to update the object.
 def product_detail(request, id):
     product = get_object_or_404(Product, pk=id) # get product from database or return 404 if not found. this also returns a error response on response if product not found. 
     if request.method == 'GET':
@@ -66,7 +66,11 @@ def product_detail(request, id):
         serializer.is_valid(raise_exception=True) # validate the incoming data against the serializer's validation rules. if the data is valid, we can proceed to save it. if the data is not valid, it will raise a ValidationError which DRF will catch and return a 400 Bad Request response with the error details.
         serializer.save() # save the validated data to update the existing Product instance in the database. this method calls create() or update() method of the serializer internally.
         return Response(serializer.data) # return the updated serialized data as a response
-
+    elif request.method == 'DELETE':
+        if product.orderitems.count() > 0: # check if the product is associated with any order items. if yes, we cannot delete it. here orderitems is the related_name we added in OrderItem model's ForeignKey to Product model. if we did not add related_name, it would be orderitem_set by default.
+            return Response({'error': 'Product cannot be deleted because it is associated with order items.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED) # return 405 Method Not Allowed response with error message. in dict you can add any key value pairs you want. here we add an 'error' key with the error message as value.
+        product.delete() # delete the product instance from the database
+        return Response(status=status.HTTP_204_NO_CONTENT) # return 204 No Content response to indicate successful deletion. 204 means the request was successful but there is no content to send in the response.
 @api_view()
 def collection_detail(request, pk):
     return Response(f"Collection id : {pk}")
