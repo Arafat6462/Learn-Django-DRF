@@ -69,9 +69,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['id', 'title', 'unit_price', 'price_with_tax', 'collection'] # specify the fields to be included in the serialized output. 
         # fields = '__all__' # This will include all fields from the model in the serialized output.
-        # Note: Using '__all__' is convenient but can expose sensitive fields unintentionally.
-        # It's often better to explicitly list the fields you want to expose.
-        # if later any new field is added to the model, it will be automatically included in the serializer output if we use '__all__'. this may not be desirable in all cases.
+        # Note: Using '__all__' is convenient but can expose sensitive fields unintentionally. It's often better to explicitly list the fields you want to expose. if later any new field is added to the model, it will be automatically included in the serializer output if we use '__all__'. this may not be desirable in all cases.
 
     price_with_tax = serializers.SerializerMethodField(method_name='calculate_tax') # adding custom field to the serializer. this field is not in the model. we are adding this field to the serializer only. SerializerMethodField is a read-only field that gets its value by calling a method on the serializer class. method_name specifies the name of the method to call to get the value for this field.
 

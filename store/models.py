@@ -38,7 +38,7 @@ class Product(models.Model):
     # sku = models.CharField(max_length=10, primary_key=True)
     title = models.CharField(max_length=255)
     slug = models.SlugField() # this will create a slug field which is a short label for something, containing only letters, numbers, underscores or hyphens so that it can be used in URLs
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True) # blank=True means the field is optional in forms (including admin site, don't show error for blank).
     unit_price = models.DecimalField(
         max_digits=6, 
         decimal_places=2,
