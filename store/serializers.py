@@ -31,7 +31,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     # title = serializers.CharField(max_length=255)
 
 
-class ProductSerializer(serializers.Serializer):
+class ProductSerializerV2(serializers.Serializer):
     id = serializers.IntegerField()
     title = serializers.CharField(max_length=255) # we add all this fields manually again because when user sends data to create a new product, we need to validate these fields and convert them to python datatypes
     price = serializers.DecimalField(max_digits=6, decimal_places=2, source='unit_price') # name of the field in the model is unit_price but we can to expose it as price in the API. so we can change the name here. name does not have to be same as model field name. here source='unit_price' tells the serializer to use the unit_price field from the model for this price field.
@@ -64,13 +64,16 @@ class ProductSerializer(serializers.Serializer):
 # - It introspects the model to determine the fields and their types.
 # - You can still add custom fields and methods as needed.
 # - You can specify which fields to include or exclude using the Meta class.
-class ProductSerializerV2(serializers.ModelSerializer):
+class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'title', 'price', 'collection'] # specify the fields to be included in the serialized output. 
-        fields = '__all__' # This will include all fields from the model in the serialized output.
+        fields = ['id', 'title', 'unit_price', 'price_with_tax', 'collection'] # specify the fields to be included in the serialized output. 
+        # fields = '__all__' # This will include all fields from the model in the serialized output.
         # Note: Using '__all__' is convenient but can expose sensitive fields unintentionally.
         # It's often better to explicitly list the fields you want to expose.
         # if later any new field is added to the model, it will be automatically included in the serializer output if we use '__all__'. this may not be desirable in all cases.
 
-    price = serializers.DecimalField(max_digits=6, decimal_places=2, source='unit_price') # here in Modelserializer, we can still override fields from the model or add new fields. here we override unit_price field to expose it as price in the API.
+    price_with_tax = serializers.SerializerMethodField(method_name='calculate_tax') # adding custom field to the serializer. this field is not in the model. we are adding this field to the serializer only. SerializerMethodField is a read-only field that gets its value by calling a method on the serializer class. method_name specifies the name of the method to call to get the value for this field.
+
+    def calculate_tax(self, product: Product): # Here :Product is a type hint indicating that the product parameter should be an instance of the Product model. this helps with code readability and can assist IDEs in providing better autocompletion and type checking.
+        return product.unit_price * Decimal(1.1) # Decimal is used to avoid floating point precision issues.
