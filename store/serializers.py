@@ -25,10 +25,16 @@ from store.models import Product, Collection
 class CollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
-        fields = ['id', 'title']
+        fields = ['id', 'title', 'product_count']
         # fields = '__all__' # This will include all fields from the model in the
     # id = serializers.IntegerField()
     # title = serializers.CharField(max_length=255)
+    product_count = serializers.SerializerMethodField(method_name='get_product_count') # custom field to show the number of products in the collection. SerializerMethodField is a read-only field that gets its value by calling a method on the serializer class. method_name specifies the name of the method to call to get the value for this field.
+
+    def get_product_count(self, collection: Collection):
+        return collection.product_set.count() # returns the number of products in the collection. count() executes a SQL COUNT query to get the number of related Product instances for the given Collection instance.
+    
+    # product_count = serializers.IntegerField() # if we use annotate in views.py, we can use IntegerField here to avoid n+1 query problem.
 
 
 class ProductSerializerV2(serializers.Serializer):
