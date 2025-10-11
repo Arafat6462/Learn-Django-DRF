@@ -7,6 +7,8 @@ from .serializers import ProductSerializer, CollectionSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
+from rest_framework.mixins import CreateModelMixin, ListModelMixin
+from rest_framework.generics import ListCreateAPIView
 
 # view function takes input as request and returns response
 """
@@ -22,7 +24,7 @@ def product_list_test(request):
 # This two changes also makes browserable API. you can visit this endpoint in browser and see the response in a nice format. 
 
 @api_view(['GET', 'POST']) # specify allowed HTTP methods for this view. if a request with a different method is made, DRF will return a 405 Method Not Allowed response automatically. by default 'GET' are allowed.f
-def product_list(request):
+def product_list__Option_1_method(request):
     if request.method == 'GET':
         queryset = Product.objects.select_related('collection').all() # get all products from database, it returns a queryset of Product instances. select_related is used to optimize the query by fetching related collection objects in the same query using a SQL join. this avoids additional queries when accessing the collection attribute of each product.
         serializer = ProductSerializer(queryset, many=True, context={'request':request}) # convert complex data (queryset of Product instances) to native python datatypes using serializer, so that it can be easily rendered to JSON, XML, etc. many=True means we are serializing a list of objects. context is used to pass additional context to the serializer. here we pass the request object so that HyperlinkedRelatedField can generate full URLs.
@@ -44,6 +46,65 @@ def product_list(request):
         serializer.save() # save the validated data to create a new Product instance in the database. this method calls create() or update() method of the serializer internally.
         # serializer.validated_data # this contains the validated data after passing all validation checks. we can use this data to create or update a Product instance.
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# Class based views
+# APIView is a base class for all class based views in DRF. it provides the core functionality for handling HTTP methods and rendering responses. 
+# we can define methods like get(), post(), put(), delete() etc. to handle the corresponding HTTP methods.
+# Class based views provide better organization and reusability of code. we can use inheritance and mixins to create reusable components. they also provide better support for complex views with multiple HTTP methods and actions.
+
+# how class method calls work:
+# when a request is made to a class based view, the as_view() method is called first. this method creates an instance of the view class and then calls the dispatch() method. the dispatch() method is responsible for routing the request to the appropriate method (get(), post(), put(), delete(), etc.) based on the HTTP method of the request. it also handles any authentication, permissions, and throttling that may be applied to the view.
+# available methods in APIView class: get(), post(), put(), delete(), patch(), head(), options(), trace() 
+# parameters passed to as_view() method are available in the view instance as attributes. for example, if we pass a parameter 'id' to as_view() method, we can access it in the view instance as self.id.
+class ProductList__Option_2_class(APIView): 
+    def get(self, request): 
+        queryset = Product.objects.select_related('collection').all() 
+        serializer = ProductSerializer(queryset, many=True, context={'request':request}) 
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data)
+        serializer.is_valid()
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# using mixins to simplify the above code. mixins provide reusable components that can be combined to create complex views. here we use ListModelMixin and CreateModelMixin to handle GET and POST requests respectively.
+# Moreover, we can use generics to further simplify the code. generics provide pre-built views for common use cases like listing, creating, retrieving, updating, and deleting objects. here we use ListCreateAPIView which combines ListModelMixin and CreateModelMixin to handle both GET and POST requests.
+# We can use ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, RetrieveUpdateAPIView, RetrieveDestroyAPIView, etc. for specific use cases.
+# generics also provide built-in support for pagination, filtering, and ordering. we can easily add these features to our views by setting the appropriate attributes.
+# Note: when using generics, we need to set the queryset and serializer_class attributes to specify the data source and serializer to be used
+class ProductList__Option_3_Mixin_override(ListCreateAPIView): # combines ListModelMixin and CreateModelMixin. ApiView is the base class for all class based views in DRF. we can also use GenericAPIView as the base class which provides more functionality like pagination, filtering, etc.
+# we can override the following methods to customize the behavior of the view: else we can directly set the attributes queryset and serializer_class.
+    
+    def get_queryset(self): # we override get_queryset() method to customize the queryset. this method is called by the ListModelMixin to get the data to be listed.
+        return Product.objects.select_related('collection').all()
+
+    def get_serializer_class(self): # we override get_serializer_class() method to customize the serializer class. this method is called by the CreateModelMixin to get the serializer to be used for deserialization.
+        return ProductSerializer
+
+    def get_serializer_context(self): # we override get_serializer_context() method to customize the context passed to the serializer. this method is called by both ListModelMixin and CreateModelMixin to get the context to be passed to the serializer.
+        return {'request': self.request} # we pass the request
+
+    # Note: with get_queryset(), get_serializer_class(), this will works for both GET and POST requests. so we don't need to define separate methods for GET and POST like in the previous example. because ListCreateAPIView already has the logic to handle both GET and POST requests using the appropriate mixins.
+    # ListCreateAPIView already has get() and post() methods defined which call the appropriate mixin methods to handle the requests.
+
+
+# Good News: we can further simplify the above code by directly setting the queryset and serializer_class attributes. this is possible because we are not doing any complex logic in get_queryset() and get_serializer_class() methods. so we can directly set the attributes instead of overriding the methods.
+# For view we can use.
+# 1. Method 1: function based view using @api_view() decorator.
+# 2. Method 2: class based view using APIView class.
+# 3. Method 3: class based view using mixins and generics.
+# 4. Method 4: class based view using generics only (simplest and most recommended way).
+# Method 4 is the most concise and recommended way to create views in DRF. it provides the same functionality as Method 3 but with less code. it also provides built-in support for pagination, filtering, and ordering. we can easily add these features to our views by setting the appropriate attributes.
+# we can use Method 1 for simple views with only one or two
+class ProductList(ListCreateAPIView):
+    queryset = Product.objects.select_related('collection').all() # set the queryset to be used for listing products. this will be used by ListModelMixin to get the data to be listed. if we need to filter the queryset based on some criteria, we can override get_queryset() method instead.
+    serializer_class = ProductSerializer # set the serializer class to be used for serialization and deserialization. this will be used by both ListModelMixin and CreateModelMixin to get the serializer to be used. if we need to use different serializers for GET and POST requests, we can override get_serializer_class() method instead.
+    
+    def get_serializer_context(self): # we override get_serializer_context() method to customize the context passed to the serializer. this method is called by both ListModelMixin and CreateModelMixin to get the context to be passed to the serializer.
+        return {'request': self.request} # we pass the request
+
+
 
 
 @api_view()
@@ -74,26 +135,6 @@ def product_detail(request, id):
         product.delete() # delete the product instance from the database
         return Response(status=status.HTTP_204_NO_CONTENT) # return 204 No Content response to indicate successful deletion. 204 means the request was successful but there is no content to send in the response.
 
-# Class based views
-# APIView is a base class for all class based views in DRF. it provides the core functionality for handling HTTP methods and rendering responses. 
-# we can define methods like get(), post(), put(), delete() etc. to handle the corresponding HTTP methods.
-# Class based views provide better organization and reusability of code. we can use inheritance and mixins to create reusable components. they also provide better support for complex views with multiple HTTP methods and actions.
-
-# how class method calls work:
-# when a request is made to a class based view, the as_view() method is called first. this method creates an instance of the view class and then calls the dispatch() method. the dispatch() method is responsible for routing the request to the appropriate method (get(), post(), put(), delete(), etc.) based on the HTTP method of the request. it also handles any authentication, permissions, and throttling that may be applied to the view.
-# available methods in APIView class: get(), post(), put(), delete(), patch(), head(), options(), trace() 
-# parameters passed to as_view() method are available in the view instance as attributes. for example, if we pass a parameter 'id' to as_view() method, we can access it in the view instance as self.id.
-class ProductList(APIView): 
-    def get(self, request): 
-        queryset = Product.objects.select_related('collection').all() 
-        serializer = ProductSerializer(queryset, many=True, context={'request':request}) 
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = ProductSerializer(data=request.data)
-        serializer.is_valid()
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class ProductDetails(APIView):
     def get(self, request, id):
