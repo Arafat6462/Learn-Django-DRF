@@ -8,7 +8,7 @@ from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 # view function takes input as request and returns response
 """
@@ -136,7 +136,7 @@ def product_detail(request, id):
         return Response(status=status.HTTP_204_NO_CONTENT) # return 204 No Content response to indicate successful deletion. 204 means the request was successful but there is no content to send in the response.
 
 
-class ProductDetails(APIView):
+class ProductDetails__generic_way(APIView):
     def get(self, request, id):
         product = get_object_or_404(Product, pk=id)
         serializer = ProductSerializer(product)
@@ -151,6 +151,22 @@ class ProductDetails(APIView):
     
     def delete(self, request, id):
         product = get_object_or_404(Product, pk=id)
+        if product.orderitems.count() > 0:
+            return Response({'error': 'Product cannot be deleted because it is associated with order items.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+# Better way to write ProductDetails class using custome generics. we can use RetrieveUpdateDestroyAPIView which combines RetrieveModelMixin, UpdateModelMixin, and DestroyModelMixin to handle GET, PUT, and DELETE requests respectively.
+# Note: when using generics, we need to set the queryset and serializer_class attributes to specify the data source and serializer to be used.
+class ProductDetails(RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    # lookup_field = 'id' # by default, DRF uses 'pk' as the lookup field. here we change it to 'id' to match our URL pattern. if we use 'pk', it will work the same way because 'pk' is an alias for the primary key field, which is 'id' in this case.
+
+    # we can override the delete method to add custom behavior before deleting the object.
+    # delete() method is called by DestroyModelMixin to handle DELETE requests.
+    def delete(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
         if product.orderitems.count() > 0:
             return Response({'error': 'Product cannot be deleted because it is associated with order items.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         product.delete()
