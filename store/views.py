@@ -9,6 +9,7 @@ from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.viewsets import ModelViewSet
 
 # Example API view function using Django REST Framework (DRF).
 # In Django, HTTP communication is handled using HttpRequest (incoming request) and HttpResponse (outgoing response).
@@ -186,7 +187,7 @@ class ProductDetails__generic_way(APIView):
 # - Set queryset and serializer_class to specify the data source and serializer.
 # - By default, DRF uses 'pk' as the lookup field, which matches the primary key ('id').
 # - Override delete() to prevent deletion if the product is associated with any order items.
-class ProductDetails(RetrieveUpdateDestroyAPIView):
+class ProductDetails__method_4(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     
@@ -316,28 +317,53 @@ class collection_detail(RetrieveUpdateDestroyAPIView):
     # DRF Views: Function-based, Class-based, and ViewSets
     # ------------------------------------------------------------------------------
 
-    # In DRF, API endpoints can be implemented in several ways:
-    # 1. Function-based views (@api_view)
+    # Django REST Framework (DRF) supports multiple ways to implement API endpoints:
+    # 1. Function-based views using @api_view
     # 2. Class-based views using APIView
-    # 3. Class-based views using generics and mixins (ListCreateAPIView, RetrieveUpdateDestroyAPIView, etc.)
-    # 4. Class-based views using generics only (recommended for simplicity)
+    # 3. Class-based views using generics and mixins (e.g., ListCreateAPIView, RetrieveUpdateDestroyAPIView)
+    # 4. Class-based views using generics only (recommended for standard CRUD operations)
 
-    # Typically, for each resource (e.g., Product), you need two endpoints:
+    # For each resource (e.g., Product), you typically need two endpoints:
     # - List & Create (GET, POST)
     # - Retrieve, Update, Delete (GET, PUT, DELETE)
     # These can be implemented as separate functions or classes.
 
-    # As your project grows, managing many separate views for each resource becomes cumbersome.
+    # As your API grows, managing many separate views for each resource can become unwieldy.
     # ------------------------------------------------------------------------------
     # ViewSets:
     # ------------------------------------------------------------------------------
-    # - ViewSets allow you to combine related views (list, create, retrieve, update, delete)
-    #   for a resource into a single class (e.g., ProductViewSet).
-    # - This improves organization and maintainability.
-    # - Routers can be used with ViewSets to automatically generate URL patterns,
-    #   reducing boilerplate code.
-    # - ViewSets are the recommended approach for large or complex APIs.
+    # - ViewSets group related actions (list, create, retrieve, update, delete) for a resource into a single class.
+    # - This improves code organization and maintainability.
+    # - Routers can be used with ViewSets to automatically generate URL patterns, reducing boilerplate.
+    # - ViewSets are recommended for large or complex APIs.
 
+
+
+# Previously, separate views handled listing/creating products and retrieving/updating/deleting a product.
+# Now, these are combined into a single ViewSet, which provides all CRUD endpoints for the Product resource.
+# This approach is more organized and maintainable.
+# ModelViewSet provides default implementations for all standard CRUD operations.
+# For API endpoints in urls.py, you can use a router to automatically generate URL patterns for this ViewSet.
+
+# Handles all actions (list, create, retrieve, update, delete) for the Product resource.
+class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g., ProductViewSet
+    queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
+    serializer_class = ProductSerializer  # Serializer used for all actions unless overridden.
+
+    def get_serializer_context(self):
+        # Passes the request to the serializer for generating full URLs (e.g., HyperlinkedRelatedField).
+        return {'request': self.request}
+
+    def delete(self, request, pk):
+        # Prevents deletion if the product is associated with any order items.
+        product = get_object_or_404(Product, pk=pk)
+        if product.orderitems.count() > 0:
+            return Response(
+                {'error': 'Product cannot be deleted because it is associated with order items.'},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
