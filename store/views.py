@@ -6,6 +6,7 @@ from .models import Product, Collection
 from .serializers import ProductSerializer, CollectionSerializer
 from rest_framework import status
 from django.db.models import Count
+from rest_framework.views import APIView
 
 # view function takes input as request and returns response
 """
@@ -72,6 +73,48 @@ def product_detail(request, id):
             return Response({'error': 'Product cannot be deleted because it is associated with order items.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED) # return 405 Method Not Allowed response with error message. in dict you can add any key value pairs you want. here we add an 'error' key with the error message as value.
         product.delete() # delete the product instance from the database
         return Response(status=status.HTTP_204_NO_CONTENT) # return 204 No Content response to indicate successful deletion. 204 means the request was successful but there is no content to send in the response.
+
+# Class based views
+# APIView is a base class for all class based views in DRF. it provides the core functionality for handling HTTP methods and rendering responses. 
+# we can define methods like get(), post(), put(), delete() etc. to handle the corresponding HTTP methods.
+# Class based views provide better organization and reusability of code. we can use inheritance and mixins to create reusable components. they also provide better support for complex views with multiple HTTP methods and actions.
+
+# how class method calls work:
+# when a request is made to a class based view, the as_view() method is called first. this method creates an instance of the view class and then calls the dispatch() method. the dispatch() method is responsible for routing the request to the appropriate method (get(), post(), put(), delete(), etc.) based on the HTTP method of the request. it also handles any authentication, permissions, and throttling that may be applied to the view.
+# available methods in APIView class: get(), post(), put(), delete(), patch(), head(), options(), trace() 
+# parameters passed to as_view() method are available in the view instance as attributes. for example, if we pass a parameter 'id' to as_view() method, we can access it in the view instance as self.id.
+class ProductList(APIView): 
+    def get(self, request): 
+        queryset = Product.objects.select_related('collection').all() 
+        serializer = ProductSerializer(queryset, many=True, context={'request':request}) 
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data)
+        serializer.is_valid()
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class ProductDetails(APIView):
+    def get(self, request, id):
+        product = get_object_or_404(Product, pk=id)
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
+     
+    def put(self, request, id):
+        product = get_object_or_404(Product, pk=id)
+        serializer = ProductSerializer(product, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    
+    def delete(self, request, id):
+        product = get_object_or_404(Product, pk=id)
+        if product.orderitems.count() > 0:
+            return Response({'error': 'Product cannot be deleted because it is associated with order items.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 @api_view(['GET', 'POST'])
