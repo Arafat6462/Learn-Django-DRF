@@ -93,7 +93,7 @@ class ProductList__Option_3_Mixin_override(ListCreateAPIView): # combines ListMo
 # For view we can use.
 # 1. Method 1: function based view using @api_view() decorator.
 # 2. Method 2: class based view using APIView class.
-# 3. Method 3: class based view using mixins and generics.
+# 3. Method 3: class based view using mixins and generics override.
 # 4. Method 4: class based view using generics only (simplest and most recommended way).
 # Method 4 is the most concise and recommended way to create views in DRF. it provides the same functionality as Method 3 but with less code. it also provides built-in support for pagination, filtering, and ordering. we can easily add these features to our views by setting the appropriate attributes.
 # we can use Method 1 for simple views with only one or two
@@ -159,7 +159,7 @@ class ProductDetails(APIView):
 
 
 @api_view(['GET', 'POST'])
-def collection_list(request):
+def collection_list__Option_1_function(request):
     if request.method == 'GET':
         queryset = Collection.objects.prefetch_related('product_set').all() 
         # queryset = Collection.objects.annotate(product_count=Count('product'))
@@ -171,6 +171,37 @@ def collection_list(request):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# Option 2: Class based view using APIView
+class CollectionList__Option_2_class(APIView):
+    def get(self, request):
+        queryset = Collection.objects.prefetch_related('product_set').all() 
+        # queryset = Collection.objects.annotate(product_count=Count('product'))
+        serializer = CollectionSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = CollectionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# Option 3: Class based view using generics and mixins override
+class CollectionList__Option_3_Mixin_override(ListCreateAPIView):
+    def get_queryset(self):
+        return Collection.objects.annotate(product_count=Count('product')).all() # for prefetch_related or other places use default related_name as 'product_set' but for annotate use related_name 'product'
+        # return Collection.objects.annotate(product_count=Count('product'))
+
+    def get_serializer_class(self):
+        return CollectionSerializer
+    
+# Option 4: Class based view using generics only (simplest and most recommended way).
+# Converting the above function based view to class based view using generics.
+# we can use ListCreateAPIView for GET and POST requests.
+# we can use RetrieveUpdateDestroyAPIView for GET, PUT, DELETE requests.
+class CollectionList(ListCreateAPIView):
+    queryset = Collection.objects.prefetch_related('product_set').all()
+    serializer_class = CollectionSerializer
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
