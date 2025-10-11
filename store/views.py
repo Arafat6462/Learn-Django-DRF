@@ -159,7 +159,7 @@ class ProductDetails__generic_way(APIView):
 # Better way to write ProductDetails class using custome generics. we can use RetrieveUpdateDestroyAPIView which combines RetrieveModelMixin, UpdateModelMixin, and DestroyModelMixin to handle GET, PUT, and DELETE requests respectively.
 # Note: when using generics, we need to set the queryset and serializer_class attributes to specify the data source and serializer to be used.
 class ProductDetails(RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
+    queryset = Product.objects.all() # set the queryset to be used for retrieving, updating, and deleting products. this will be used by RetrieveModelMixin, UpdateModelMixin, and DestroyModelMixin to get the data to be processed.
     serializer_class = ProductSerializer
     # lookup_field = 'id' # by default, DRF uses 'pk' as the lookup field. here we change it to 'id' to match our URL pattern. if we use 'pk', it will work the same way because 'pk' is an alias for the primary key field, which is 'id' in this case.
 
@@ -221,7 +221,7 @@ class CollectionList(ListCreateAPIView):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def collection_detail(request, pk):
+def collection_detail__method_view(request, pk):
     collection = get_object_or_404(Collection, pk=pk)
     # collection = get_object_or_404(Collection.objects.annotate(product_count=Count('product')), pk=pk)
     if request.method == 'GET':
@@ -240,6 +240,19 @@ def collection_detail(request, pk):
         collection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+# Better way to write collection_detail class using generics. we can use RetrieveUpdateDestroyAPIView which combines RetrieveModelMixin, UpdateModelMixin, and DestroyModelMixin to handle GET, PUT, and DELETE requests respectively.
+class collection_detail(RetrieveUpdateDestroyAPIView):
+    queryset = Collection.objects.annotate(product_count=Count('product')).all()
+    serializer_class = CollectionSerializer
+
+    def delete(self, request, pk):
+        collection = get_object_or_404(Collection, pk=pk)
+        if collection.product_set.count() > 0:
+            return Response({'error': 'Collection cannot be deleted because it includes one or more products.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        collection.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 # Tips: use below SQL command to reset the primary key sequence in Postgres if you manually delete all rows from a table. this will ensure that the next inserted row will have the correct primary key value.
 # SELECT setval(pg_get_serial_sequence('store_product', 'id'), (SELECT MAX(id) FROM store_product) + 1);
