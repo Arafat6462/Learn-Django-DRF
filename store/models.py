@@ -125,3 +125,10 @@ class Address(models.Model):
     # Multiple instances of your model can be linked to the same Customer.
     # If the Customer is deleted, all related instances are also deleted (CASCADE).
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews') # related_name allows accessing reviews of a product using product.reviews and CASCADE means if the product is deleted, all its reviews will also be deleted.
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    date = models.DateField(auto_now_add=True) # auto_now_add means the field is set to the current date when the object is created. it is not updated when the object is updated.

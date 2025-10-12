@@ -1,6 +1,6 @@
 from decimal import Decimal
 from rest_framework import serializers
-from store.models import Product, Collection
+from store.models import Product, Collection, Review
 
 # DRF serializers are responsible for transforming complex data (like Django models) into native Python datatypes. This makes it easy to render data as JSON, XML, etc.
 # Serializers also handle deserialization: they validate and transform incoming data (such as JSON from an API request) back into Python objects or Django models.
@@ -96,3 +96,9 @@ class ProductSerializer(serializers.ModelSerializer):
     #     instance.unit_price = validated_data.get('unit_price') # update the unit_price field of the instance with the new value from validated_data. if unit_price is not provided in validated_data, it will keep its current value.
     #     instance.save() # save the updated Product instance to the database.
     #     return instance # return the updated Product instance.
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['id', 'name', 'product', 'description']

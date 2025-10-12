@@ -2,8 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import OrderItem, Product, Collection
-from .serializers import ProductSerializer, CollectionSerializer
+from .models import OrderItem, Product, Collection, Review
+from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
@@ -387,6 +387,9 @@ class CollectionViewSet(ModelViewSet):
 
 
 
+class ReviewViewSet(ModelViewSet):
+    queryset = Review.objects.al()
+    serializer_class = ReviewSerializer
 
 
 
