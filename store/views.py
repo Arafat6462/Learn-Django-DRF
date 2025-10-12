@@ -255,7 +255,7 @@ class CollectionList__Option_3_Mixin_override(ListCreateAPIView):
 # - Inherits from ListCreateAPIView for GET and POST requests.
 # - Sets queryset and serializer_class directly for concise implementation.
 # - Prefetches related products for efficient queries.
-class CollectionList(ListCreateAPIView):
+class CollectionList__Opthon_4(ListCreateAPIView):
     queryset = Collection.objects.prefetch_related('product_set').all()
     serializer_class = CollectionSerializer
 
@@ -294,7 +294,7 @@ def collection_detail__method_view(request, pk):
 # Inherits from RetrieveUpdateDestroyAPIView, which provides GET, PUT, and DELETE handlers.
 # Uses queryset annotated with product_count for additional context if needed.
 # The delete method is overridden to prevent deletion if the collection contains products.
-class collection_detail(RetrieveUpdateDestroyAPIView):
+class collection_detail__Option_4(RetrieveUpdateDestroyAPIView):
     queryset = Collection.objects.annotate(product_count=Count('product')).all()
     serializer_class = CollectionSerializer
 
@@ -367,6 +367,20 @@ class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g
 
 
 
+# ViewSet for managing Collection resources.
+class CollectionViewSet(ModelViewSet):
+    queryset = Collection.objects.annotate(product_count=Count('product')).all()
+    serializer_class = CollectionSerializer
+
+    def delete(self, request, pk):
+        collection = get_object_or_404(Collection, pk=pk)
+        if collection.product_set.count() > 0:
+            return Response(
+                {'error': 'Collection cannot be deleted because it includes one or more products.'},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
+        collection.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
