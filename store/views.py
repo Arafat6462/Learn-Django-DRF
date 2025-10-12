@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Product, Collection
+from .models import OrderItem, Product, Collection
 from .serializers import ProductSerializer, CollectionSerializer
 from rest_framework import status
 from django.db.models import Count
@@ -346,6 +346,7 @@ class collection_detail__Option_4(RetrieveUpdateDestroyAPIView):
 # For API endpoints in urls.py, you can use a router to automatically generate URL patterns for this ViewSet.
 
 # Handles all actions (list, create, retrieve, update, delete) for the Product resource.
+# in generic way, for delete we override the delete method that actually calls destroy method. but in ViewSet we override destroy method directly.
 class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g., ProductViewSet
     queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
     serializer_class = ProductSerializer  # Serializer used for all actions unless overridden.
@@ -353,18 +354,21 @@ class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g
     def get_serializer_context(self):
         # Passes the request to the serializer for generating full URLs (e.g., HyperlinkedRelatedField).
         return {'request': self.request}
-
-    def delete(self, request, pk):
-        # Prevents deletion if the product is associated with any order items.
-        product = get_object_or_404(Product, pk=pk)
-        if product.orderitems.count() > 0:
+        
+    # Efficient product deletion check:
+    # There are two ways to check if a product is associated with order items before deletion:
+    # 1. Fetch the Product instance and check its related orderitems count.
+    # 2. Directly query the OrderItem model for any items referencing the product (recommended for efficiency).
+    # This method uses the second approach to avoid unnecessary database fetches.
+    def destroy(self, request, *args, **kwargs):
+        # product = get_object_or_404(Product, pk=kwargs['pk']) 
+        # if product.orderitems.count() > 0:
+        if OrderItem.objects.filter(product_id=kwargs['pk']).count() > 0: 
             return Response(
                 {'error': 'Product cannot be deleted because it is associated with order items.'},
                 status=status.HTTP_405_METHOD_NOT_ALLOWED
             )
-        product.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
+        return super().destroy(request, *args, **kwargs)
 
 
 # ViewSet for managing Collection resources.
@@ -372,15 +376,13 @@ class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.annotate(product_count=Count('product')).all()
     serializer_class = CollectionSerializer
 
-    def delete(self, request, pk):
-        collection = get_object_or_404(Collection, pk=pk)
+    # Override destroy to prevent deletion if the collection has related products.
+    def destroy(self, request, *args, **kwargs):
+        collection = get_object_or_404(Collection, pk=kwargs['pk'])
         if collection.product_set.count() > 0:
-            return Response(
-                {'error': 'Collection cannot be deleted because it includes one or more products.'},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED
-            )
-        collection.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({'error': 'Collection cannot be deleted because it includes one or more products.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+        return super().destroy(request, *args, **kwargs)
 
 
 
