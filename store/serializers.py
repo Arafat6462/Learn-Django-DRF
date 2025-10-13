@@ -101,4 +101,8 @@ class ProductSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'name', 'product', 'description']
+        fields = ['id', 'name', 'description']
+
+    def create(self, validated_data):
+        product_id = self.context['product_id'] # get product_id from the serializer context. we pass product_id to the serializer context in views.py in ReviewViewSet's get_serializer_context method.
+        return Review.objects.create(product_id=product_id, **validated_data) # create a new Review instance associated with the given product_id. **validated_data unpacks the dictionary into keyword arguments.

@@ -388,8 +388,14 @@ class CollectionViewSet(ModelViewSet):
 
 
 class ReviewViewSet(ModelViewSet):
-    queryset = Review.objects.al()
+    # queryset = Review.objects.all()
+    def get_queryset(self):
+        return Review.objects.filter(product_id=self.kwargs['product_pk'])
+
     serializer_class = ReviewSerializer
+
+    def get_serializer_context(self):
+        return {'product_id': self.kwargs['product_pk']} # 'product_pk' comes from the nested router's URL pattern. url has two parameters: product_pk and pk. here we pass product_pk to the serializer context so that we can use it in the serializer to associate the review with the correct product.
 
 
 

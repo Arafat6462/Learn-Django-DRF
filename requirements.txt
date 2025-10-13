@@ -2,3 +2,4 @@ django
 django-debug-toolbar
 psycopg2-binary
 djangorestframework
+drf-nested-routers
