@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend # import DjangoFilterBackend for filtering support 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from store.filters import ProductFilter
 from .models import OrderItem, Product, Collection, Review
 from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
 from rest_framework import status
@@ -348,17 +350,27 @@ class collection_detail__Option_4(RetrieveUpdateDestroyAPIView):
 # Handles all actions (list, create, retrieve, update, delete) for the Product resource.
 # in generic way, for delete we override the delete method that actually calls destroy method. but in ViewSet we override destroy method directly.
 class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g., ProductViewSet
-    # queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
+    queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
     serializer_class = ProductSerializer  # Serializer used for all actions unless overridden.
 
-    # Override get_queryset to filter products by collection_id if provided in query parameters.
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        collection_id = self.request.query_params.get('collection_id') # get collection_id from query parameters. if not provided, it will be None. here get method is used to avoid KeyError. when not provided, it returns None.
-        if collection_id is not None:
-            queryset = queryset.filter(collection_id=collection_id)
+    filter_backends = [DjangoFilterBackend]  # Enable filtering support using DjangoFilterBackend.
+    # filterset_fields = ['collection_id', 'unit_price']  # Allow filtering products by collection_id via query parameters.
+    filterset_class = ProductFilter # instead of filterset_fields, we use filterset_class to specify a custom FilterSet class.
 
-        return queryset
+    # by usiing DjangoFilterBackend, it adds filtering support to the ViewSet automatically. also in web it adds filtering UI in the browsable API.
+
+    # Note: if we want to filter products based on collection_id from query parameters, we can do it in two ways:
+    # 1. Using DjangoFilterBackend as shown above. This is the recommended way for simple filtering.
+    # 2. Manually overriding get_queryset method as shown below.
+    
+    # # Override get_queryset to filter products by collection_id if provided in query parameters.
+    # def get_queryset(self):
+    #     queryset = Product.objects.all()
+    #     collection_id = self.request.query_params.get('collection_id') # get collection_id from query parameters. if not provided, it will be None. here get method is used to avoid KeyError. when not provided, it returns None.
+    #     if collection_id is not None:
+    #         queryset = queryset.filter(collection_id=collection_id)
+
+    #     return queryset
     
     def get_serializer_context(self):
         # Passes the request to the serializer for generating full URLs (e.g., HyperlinkedRelatedField).
