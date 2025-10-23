@@ -151,5 +151,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # DRF settings.
 REST_FRAMEWORK = {
-    'COERCE_DECIMAL_TO_STRING': False # to prevent DRF from converting decimal fields to strings in the API response
+    'COERCE_DECIMAL_TO_STRING': False, # to prevent DRF from converting decimal fields to strings in the API response
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # set default pagination class to PageNumberPagination for the entire project. for custom pagination we can create our own pagination class by inheriting PageNumberPagination in views.py
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',  
+    # 'PAGE_SIZE': 10,  # default page size for pagination
 }

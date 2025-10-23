@@ -2,9 +2,11 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend # import DjangoFilterBackend for filtering support 
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from store.filters import ProductFilter
+from store.pagination import DefaultPagination
 from .models import OrderItem, Product, Collection, Review
 from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
 from rest_framework import status
@@ -359,8 +361,12 @@ class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g
     filterset_class = ProductFilter # instead of filterset_fields, we use filterset_class to specify a custom FilterSet class.
     search_fields = ['title', 'description'] # enable search functionality on title and description fields.
     ordering_fields = ['unit_price', 'last_update'] # enable ordering functionality on unit_price and last_update fields.
-
     # by usiing DjangoFilterBackend, it adds filtering support to the ViewSet automatically. also in web it adds filtering UI in the browsable API.
+
+    # we can set this pagination_class in settings.py globally for the entire project. but if we want to set it for this ViewSet only, we can uncomment the line below.
+    # pagination_class = PageNumberPagination  # Enable pagination using page number pagination.
+    pagination_class = DefaultPagination # here we use our custom pagination class defined in pagination.py so that we can easily change the page size in one place.
+    # parser_classes = LimitOffsetPagination # Enable pagination using limit-offset pagination. here offset is the starting point and limit is the number of items to return.
 
     # Note: if we want to filter products based on collection_id from query parameters, we can do it in two ways:
     # 1. Using DjangoFilterBackend as shown above. This is the recommended way for simple filtering.
