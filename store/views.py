@@ -348,9 +348,18 @@ class collection_detail__Option_4(RetrieveUpdateDestroyAPIView):
 # Handles all actions (list, create, retrieve, update, delete) for the Product resource.
 # in generic way, for delete we override the delete method that actually calls destroy method. but in ViewSet we override destroy method directly.
 class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g., ProductViewSet
-    queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
+    # queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
     serializer_class = ProductSerializer  # Serializer used for all actions unless overridden.
 
+    # Override get_queryset to filter products by collection_id if provided in query parameters.
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        collection_id = self.request.query_params.get('collection_id') # get collection_id from query parameters. if not provided, it will be None. here get method is used to avoid KeyError. when not provided, it returns None.
+        if collection_id is not None:
+            queryset = queryset.filter(collection_id=collection_id)
+
+        return queryset
+    
     def get_serializer_context(self):
         # Passes the request to the serializer for generating full URLs (e.g., HyperlinkedRelatedField).
         return {'request': self.request}
@@ -388,7 +397,10 @@ class CollectionViewSet(ModelViewSet):
 
 
 class ReviewViewSet(ModelViewSet):
-    # queryset = Review.objects.all()
+    # queryset = Review.objects.all() 
+    
+    # # here we want to filter reviews based on the product they belong to. so we will override get_queryset method instead of setting queryset attribute.
+    # we will get product_pk from the URL. so we will filter reviews based on product_id which is equal to product_pk from the URL.
     def get_queryset(self):
         return Review.objects.filter(product_id=self.kwargs['product_pk'])
 
