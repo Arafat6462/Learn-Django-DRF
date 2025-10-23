@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend # import DjangoFilterBackend for filtering support 
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from store.filters import ProductFilter
@@ -354,10 +354,11 @@ class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g
     queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
     serializer_class = ProductSerializer  # Serializer used for all actions unless overridden.
 
-    filter_backends = [DjangoFilterBackend, SearchFilter]  # Enable filtering support using DjangoFilterBackend. SearchFilter added for search functionality.
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]  # Enable filtering support using DjangoFilterBackend. SearchFilter added for search functionality. here OrderingFilter is also added to enable ordering functionality.
     # filterset_fields = ['collection_id', 'unit_price']  # Allow filtering products by collection_id via query parameters.
     filterset_class = ProductFilter # instead of filterset_fields, we use filterset_class to specify a custom FilterSet class.
     search_fields = ['title', 'description'] # enable search functionality on title and description fields.
+    ordering_fields = ['unit_price', 'last_update'] # enable ordering functionality on unit_price and last_update fields.
 
     # by usiing DjangoFilterBackend, it adds filtering support to the ViewSet automatically. also in web it adds filtering UI in the browsable API.
 
