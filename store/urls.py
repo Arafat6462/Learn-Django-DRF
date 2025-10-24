@@ -15,7 +15,7 @@ router.register('products', views.ProductViewSet, basename='products') # 'produc
 router.register('collections', views.CollectionViewSet)
 
 # Print the generated URLs for debugging purposes.
-pprint(router.urls)
+# pprint(router.urls)
 
 # Note:
 # - SimpleRouter generates standard RESTful routes for registered viewsets (list, create, retrieve, update, partial_update, destroy).
