@@ -7,14 +7,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
-from .models import OrderItem, Product, Collection, Review
-from .serializers import ProductSerializer, CollectionSerializer, ReviewSerializer
+from .models import Cart, OrderItem, Product, Collection, Review
+from .serializers import CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 # Example API view function using Django REST Framework (DRF).
 # In Django, HTTP communication is handled using HttpRequest (incoming request) and HttpResponse (outgoing response).
@@ -432,7 +432,19 @@ class ReviewViewSet(ModelViewSet):
 
 
 
+# This ViewSet exposes only the "create" action (POST /carts/) by using CreateModelMixin + GenericViewSet.
+# We intentionally do not provide list/retrieve/update/destroy at the top-level cart endpoint to avoid exposing all cart IDs.
+# Cart items (line items) should be managed via separate endpoints (e.g., CartItem viewset or nested routes).
+# The CartSerializer is expected to validate nested items and create the Cart and its items atomically.
+# To add retrieve/update/delete for individual carts, include the corresponding mixins (RetrieveModelMixin,
+# UpdateModelMixin, DestroyModelMixin) or use ModelViewSet with appropriate permission checks.
+# - Purpose: expose only the create action (POST /carts/) via CreateModelMixin + GenericViewSet.
+# - Expectations: CartSerializer validates nested items and creates Cart + LineItems atomically.
 
+class CartViewSet(CreateModelMixin, GenericViewSet): # here we use CreateModelMixin to provide only the create action and GenericViewSet as the base class for the ViewSet.
+
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
 
 
 

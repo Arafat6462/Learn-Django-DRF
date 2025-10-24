@@ -13,6 +13,7 @@ router = routers.DefaultRouter() # we are nested routers instead of drf's rou
 # This automatically generates standard RESTful routes for each viewset.
 router.register('products', views.ProductViewSet, basename='products') # 'products' is the URL prefix for ProductViewSet
 router.register('collections', views.CollectionViewSet)
+router.register('carts', views.CartViewSet) # registering CartViewSet to handle cart-related endpoints
 
 # Print the generated URLs for debugging purposes.
 # pprint(router.urls)

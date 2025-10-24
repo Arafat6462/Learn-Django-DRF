@@ -105,11 +105,11 @@ class OrderItem(models.Model):
 
 class Cart(models.Model):
     # id = models.AutoField(primary_key=True)  # explicitly defining primary key field, although Django does this automatically if not specified.
-    uuid = models.UUIDField(primary_key=True, default=uuid4, unique=True) # using UUIDField as primary key for better security so that cart ids are not predictable. unless specified, Django uses an AutoField which is an integer that auto-increments for primary key. this makes it easy to guess other cart ids and access them illegally. here default=uuid4 generates a random UUID for each new cart. here we are not calling uuid4() function, we are just passing the function itself so that it can be called each time a new cart is created. unless it creates an uuid4 only once at the time of model definition.
+    id = models.UUIDField(primary_key=True, default=uuid4, unique=True) # using UUIDField as primary key for better security so that cart ids are not predictable. unless specified, Django uses an AutoField which is an integer that auto-increments for primary key. this makes it easy to guess other cart ids and access them illegally. here default=uuid4 generates a random UUID for each new cart. here we are not calling uuid4() function, we are just passing the function itself so that it can be called each time a new cart is created. unless it creates an uuid4 only once at the time of model definition.
     created_at = models.DateTimeField(auto_now_add=True)
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, to_field='uuid', on_delete=models.CASCADE, related_name='ietems') # to_field='uuid' specifies that the ForeignKey should reference the 'uuid' field of the Cart model. related_name='items' allows accessing cart items of a cart using cart.items.
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items') # to_field='uuid' specifies that the ForeignKey should reference the 'uuid' field of the Cart model. related_name='items' allows accessing cart items of a cart using cart.items.
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField()
 
