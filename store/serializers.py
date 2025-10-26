@@ -1,6 +1,6 @@
 from decimal import Decimal
 from rest_framework import serializers
-from store.models import Cart, Product, Collection, Review
+from store.models import Cart, CartItem, Product, Collection, Review
 
 # DRF serializers are responsible for transforming complex data (like Django models) into native Python datatypes. This makes it easy to render data as JSON, XML, etc.
 # Serializers also handle deserialization: they validate and transform incoming data (such as JSON from an API request) back into Python objects or Django models.
@@ -106,12 +106,35 @@ class ReviewSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         product_id = self.context['product_id'] # get product_id from the serializer context. we pass product_id to the serializer context in views.py in ReviewViewSet's get_serializer_context method.
         return Review.objects.create(product_id=product_id, **validated_data) # create a new Review instance associated with the given product_id. **validated_data unpacks the dictionary into keyword arguments.
+
+
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'title', 'unit_price']
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product = SimpleProductSerializer() # nested serializer to show product details in the cart item
+    total_price = serializers.SerializerMethodField() # custom field to show total price of the cart item (quantity * unit_price). SerializerMethodField is a read-only field that gets its value by calling a method on the serializer class. by default, it looks for a method named get_<field_name> to get the value for this field. 
     
+    def get_total_price(self, cart_item:CartItem): # method to calculate total price of the cart item. Here :CartItem is a type hint indicating that the cart_item parameter should be an instance of the CartItem model. this helps with code readability and can assist IDEs in providing better autocompletion and type checking. method name is important here. it should be get_total_price to match the field name total_price.
+        return cart_item.quantity * cart_item.product.unit_price # calculate total price by multiplying quantity with unit_price of the product. here cart_item.product is the related Product instance for the CartItem instance.
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product', 'quantity', 'total_price'] # here total_price is a custom field added to show the total price of the cart item (quantity * unit_price).
 
 
 class CartSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True) # uuid is the primary key field for Cart model. we set read_only=True because we don't want the user to provide this value when creating a new cart. it will be generated automatically.
-    
+    items = CartItemSerializer(many=True) # items is the reverse relationship from CartItem to Cart. we will define CartItemSerializer to show the items in the cart. many=True indicates that there can be multiple items in the cart.
+    total_price = serializers.SerializerMethodField() # custom field to show total price of the cart (sum of total price of all cart items). SerializerMethodField is a read-only field that gets its value by calling a method on the serializer class. by default, it looks for a method named get_<field_name> to get the value for this field.
+
+    def get_total_price(self, cart:Cart): # method to calculate total price of the cart. Here :Cart is a type hint indicating that the cart parameter should be an instance of the Cart model. this helps with code readability and can assist IDEs in providing better autocompletion and type checking. method name is important here. it should be get_total_price to match the field name total_price.
+        return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
+
     class Meta:
         model = Cart
-        fields = ['id'] # only expose the id field in the API.
+        fields = ['id', 'items', 'total_price'] # Items is the reverse relationship from CartItem to Cart. we will define CartItemSerializer to show the items in the cart.
+
