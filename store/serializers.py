@@ -128,7 +128,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 class CartSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True) # uuid is the primary key field for Cart model. we set read_only=True because we don't want the user to provide this value when creating a new cart. it will be generated automatically.
-    items = CartItemSerializer(many=True) # items is the reverse relationship from CartItem to Cart. we will define CartItemSerializer to show the items in the cart. many=True indicates that there can be multiple items in the cart.
+    items = CartItemSerializer(many=True, read_only=True) # items is the reverse relationship from CartItem to Cart. we will define CartItemSerializer to show the items in the cart. many=True indicates that there can be multiple items in the cart. Read-only because we don't want the user to provide this value when creating a new cart. items will be added separately.
     total_price = serializers.SerializerMethodField() # custom field to show total price of the cart (sum of total price of all cart items). SerializerMethodField is a read-only field that gets its value by calling a method on the serializer class. by default, it looks for a method named get_<field_name> to get the value for this field.
 
     def get_total_price(self, cart:Cart): # method to calculate total price of the cart. Here :Cart is a type hint indicating that the cart parameter should be an instance of the Cart model. this helps with code readability and can assist IDEs in providing better autocompletion and type checking. method name is important here. it should be get_total_price to match the field name total_price.

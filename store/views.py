@@ -12,7 +12,7 @@ from .serializers import CartSerializer, ProductSerializer, CollectionSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
@@ -441,7 +441,7 @@ class ReviewViewSet(ModelViewSet):
 # - Purpose: expose only the create action (POST /carts/) via CreateModelMixin + GenericViewSet.
 # - Expectations: CartSerializer validates nested items and creates Cart + LineItems atomically.
 
-class CartViewSet(CreateModelMixin, GenericViewSet, RetrieveModelMixin): # here we use CreateModelMixin to provide only the create action and GenericViewSet as the base class for the ViewSet.
+class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet): # here we use CreateModelMixin to provide only the create action and GenericViewSet as the base class for the ViewSet.
 
     queryset = Cart.objects.prefetch_related('items__product').all() # prefetch related items and products to avoid N+1 query problem when retrieving a cart along with its items and their associated products. here item__product __ is used to traverse the relationship from Cart to CartItem (items) and then to Product (product). but for foreign key relationships, select_related is preferred. however, since Cart to CartItem is a one-to-many relationship, we use prefetch_related for that part.
     serializer_class = CartSerializer
