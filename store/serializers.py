@@ -138,3 +138,35 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ['id', 'items', 'total_price'] # Items is the reverse relationship from CartItem to Cart. we will define CartItemSerializer to show the items in the cart.
 
+
+# Above CartSerializer not used for adding items to cart. we need a separate serializer for that.
+# because when adding an item to the cart, we only need product_id and quantity from the user. we don't need to show the entire product details or total price.
+class AddCartItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.IntegerField() # product_id is the foreign key field to Product model. we use product_id instead of product to allow the user to provide the product id when adding an item to the cart.
+
+    def validate_product_id(self, value): # custom validator for product_id field to check if the product with the given id exists.
+        if not Product.objects.filter(pk=value).exists(): # check if a product with the given id exists in the database.
+            raise serializers.ValidationError('No product with the given id was found.') # raise validation error if product does not exist.
+        return value # return the validated value if product exists.
+
+    # here we override the save method to add custom behavior when adding an item to the cart.
+    def save(self, **kwargs):
+        cart_id = self.context['cart_id'] # get cart_id from the serializer context. we pass cart_id to the serializer context in views.py in CartItemViewSet's get_serializer_context method.
+        product_id = self.validated_data['product_id'] # get product_id from the validated data. this is the data provided by the user after passing all validation checks.
+        quantity = self.validated_data['quantity'] # get quantity from the validated data.
+
+        try:
+            cart_item = CartItem.objects.get(cart_id=cart_id, product_id=product_id) # check if the cart item already exists in the cart for the given product_id.
+            cart_item.quantity += quantity # if it exists, increment the quantity by the provided quantity.
+            cart_item.save() # save the updated cart item to the database.
+            self.instance = cart_item # set the instance attribute to the updated cart item. this is important for the serializer to return the updated cart item after saving.
+
+        except CartItem.DoesNotExist:
+            # CartItem.objects.create(cart_id=cart_id, product_id=product_id, quantity=quantity) # if it does not exist, create a new cart item with the provided cart_id, product_id and quantity.
+            self.instance = CartItem.objects.create(**self.validated_data, cart_id=cart_id) # alternative way to create a new cart item using unpacking operator. here we unpack the validated_data dictionary into keyword arguments and add cart_id as well.
+
+        return self.instance # return the created or updated cart item instance.
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product_id', 'quantity'] # product_id is the foreign key field to Product model. we use product_id instead of product to allow the user to provide the product id when adding an item to the cart.

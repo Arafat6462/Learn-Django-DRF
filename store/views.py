@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem
-from .serializers import CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer
+from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
@@ -448,8 +448,16 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 
 
 class CartItemViewSet(ModelViewSet):
-    serializer_class = CartItemSerializer # using CartItemSerializer to serialize cart items. you can create a separate serializer for cart items if needed.
+    # serializer_class = CartItemSerializer # using CartItemSerializer to serialize cart items. you can create a separate serializer for cart items if needed.
     
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AddCartItemSerializer  # use AddCartItemSerializer for creating cart items
+        return CartItemSerializer  # use CartItemSerializer for other actions (list, retrieve,
+
+    def get_serializer_context(self):
+        return {'cart_id': self.kwargs['cart_pk']}  # pass cart_id to the serializer context. 'cart_pk' comes from the nested router's URL.
+
     # Here, we filter CartItems based on the cart they belong to.
     def get_queryset(self):
         return CartItem.objects.filter(cart_id=self.kwargs['cart_pk']).select_related('product') # filter cart items based on the cart they belong to. cart_pk comes from the nested router's URL.

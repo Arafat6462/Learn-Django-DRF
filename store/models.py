@@ -111,7 +111,7 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items') # to_field='uuid' specifies that the ForeignKey should reference the 'uuid' field of the Cart model. related_name='items' allows accessing cart items of a cart using cart.items.
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField()
+    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)]) # to prevent negative quantity
 
     # Adding unique_together constraint to ensure that there is only one cart item for a given product in a given cart.
     class Meta:
