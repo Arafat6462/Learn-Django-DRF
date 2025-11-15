@@ -449,7 +449,7 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 
 class CartItemViewSet(ModelViewSet):
     # serializer_class = CartItemSerializer # using CartItemSerializer to serialize cart items. you can create a separate serializer for cart items if needed.
-    http_method_names = ['get', 'post', 'patch', 'delete']  # limit allowed HTTP methods to GET, POST, PATCH, DELETE. this will prevent PUT method.
+    http_method_names = ['get', 'post', 'patch', 'delete']  # limit allowed HTTP methods to GET, POST, PATCH, DELETE. this will prevent PUT method. all names should be in lowercase.
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
