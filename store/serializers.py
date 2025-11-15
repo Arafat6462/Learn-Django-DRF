@@ -170,3 +170,9 @@ class AddCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['id', 'product_id', 'quantity'] # product_id is the foreign key field to Product model. we use product_id instead of product to allow the user to provide the product id when adding an item to the cart.
+
+
+class UpdateCartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['quantity'] # only quantity can be updated when updating a cart item.

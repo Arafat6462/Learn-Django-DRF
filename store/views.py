@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem
-from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer
+from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
@@ -449,10 +449,13 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
 
 class CartItemViewSet(ModelViewSet):
     # serializer_class = CartItemSerializer # using CartItemSerializer to serialize cart items. you can create a separate serializer for cart items if needed.
-    
+    http_method_names = ['get', 'post', 'patch', 'delete']  # limit allowed HTTP methods to GET, POST, PATCH, DELETE. this will prevent PUT method.
+
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return AddCartItemSerializer  # use AddCartItemSerializer for creating cart items
+        elif self.request.method == 'PATCH':
+            return UpdateCartItemSerializer  # use AddCartItemSerializer for updating cart items
         return CartItemSerializer  # use CartItemSerializer for other actions (list, retrieve,
 
     def get_serializer_context(self):
