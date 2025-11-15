@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'store',
     'tags',
     'likes',
-    'store_customer',
+    'core',
 
 ]
 
