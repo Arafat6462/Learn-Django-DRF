@@ -39,9 +39,12 @@ urlpatterns_manually_way = [
 products_router = routers.NestedDefaultRouter(router, 'products', lookup='product') # 'products' is the prefix of the parent router, and 'product' is the lookup field used in the URL. here three parameters are 1. parent router, 2. prefix of the parent router, 3. lookup field for the child router.
 products_router.register('reviews', views.ReviewViewSet, basename='product-reviews') # 'reviews' is the prefix for the nested route, and ReviewViewSet is the viewset handling requests to this nested route. basename is used to name the URL patterns.
 
+cart_router = routers.NestedDefaultRouter(router, 'carts', lookup='cart') # here lookup='cart' means that in the URL, the cart's primary key will be referenced as 'cart_pk'.
+cart_router.register('items', views.CartItemViewSet, basename='cart-items') # registering CartItemViewSet to handle cart items under a specific cart.
 # Use the router-generated URLs as the urlpatterns.
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(products_router.urls)), # include the nested router URLs
+    path('', include(cart_router.urls)), # include the cart nested router URLs
 ]
 

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem
-from .serializers import CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer
+from .serializers import CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
@@ -446,6 +446,14 @@ class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Gener
     queryset = Cart.objects.prefetch_related('items__product').all() # prefetch related items and products to avoid N+1 query problem when retrieving a cart along with its items and their associated products. here item__product __ is used to traverse the relationship from Cart to CartItem (items) and then to Product (product). but for foreign key relationships, select_related is preferred. however, since Cart to CartItem is a one-to-many relationship, we use prefetch_related for that part.
     serializer_class = CartSerializer
 
+
+class CartItemViewSet(ModelViewSet):
+    serializer_class = CartItemSerializer # using CartItemSerializer to serialize cart items. you can create a separate serializer for cart items if needed.
+    
+    # Here, we filter CartItems based on the cart they belong to.
+    def get_queryset(self):
+        return CartItem.objects.filter(cart_id=self.kwargs['cart_pk']).select_related('product') # filter cart items based on the cart they belong to. cart_pk comes from the nested router's URL.
+    
 
 
 
