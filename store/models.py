@@ -113,6 +113,10 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
 
+    # custom permission to cancel order
+    class Meta:
+        permissions = [('cancel_order', 'Can cancel order')] # custom permissions to cancel order. this permission can be assigned to users or groups. it can be checked in views or templates to allow or deny access to certain actions.
+
 class OrderItem(models.Model):
     # in Order model, django will automatically create a reverse relationship as orderitem_set unless specified otherwise. this can be changed by adding related_name parameter in ForeignKey
     order = models.ForeignKey(Order, on_delete=models.PROTECT)
