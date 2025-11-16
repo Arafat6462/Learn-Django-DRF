@@ -6,3 +6,4 @@ drf-nested-routers
 django-filter
 
 djoser # For user authentication and management
+djangorestframework-simplejwt # For JWT authentication

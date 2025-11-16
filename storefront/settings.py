@@ -156,6 +156,17 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # set default pagination class to PageNumberPagination for the entire project. for custom pagination we can create our own pagination class by inheriting PageNumberPagination in views.py
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',  
     # 'PAGE_SIZE': 10,  # default page size for pagination
+
+    # Set JWT as the default authentication method
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
+}
+
+# Djoser settings for user management
+# This will set the prefix the token type in the Authorization header
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
 }
 
 AUTH_USER_MODEL = 'core.User'  # specify the custom user model

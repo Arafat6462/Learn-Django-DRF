@@ -23,8 +23,11 @@ admin.site.index_title = "Admin"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('playground.urls')),
-    path('__debug__/', include(debug_toolbar.urls)),
+    path('playground/', include('playground.urls')),
     path('store/', include(urls)), # Include the store app URLs
-    path('auth/', include('djoser.urls')),  # Djoser URLs for user management
+    path('__debug__/', include(debug_toolbar.urls)),
+
+    path('auth/', include('djoser.urls')),  # Djoser will provide the standard auth URLs
+    path('auth/', include('djoser.urls.jwt')),  # Djoser JWT URLs for token management
+
 ]
