@@ -4,3 +4,5 @@ psycopg2-binary
 djangorestframework
 drf-nested-routers
 django-filter
+
+djoser # For user authentication and management

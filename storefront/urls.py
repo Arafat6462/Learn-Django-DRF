@@ -26,4 +26,5 @@ urlpatterns = [
     path('', include('playground.urls')),
     path('__debug__/', include(debug_toolbar.urls)),
     path('store/', include(urls)), # Include the store app URLs
+    path('auth/', include('djoser.urls')),  # Djoser URLs for user management
 ]
