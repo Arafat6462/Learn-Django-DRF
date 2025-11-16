@@ -90,8 +90,9 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'membership', 'orders'] # here, orders is a custom method defined below. it is not a field in the model. it calls the method and displays the result in the admin list view.
     list_editable = ['membership']
     list_per_page = 10
+    list_select_related = ['user'] # to optimize the query and reduce the number of queries to the database. it will use a SQL join to fetch the related objects in a single query instead of multiple queries.
     search_fields = ['first_name__istartswith', 'last_name__istartswith'] # fields to search in the admin list view. istartswith is a case-insensitive search that matches the beginning of the field. this __isstartswith is a field lookup. other lookups are: exact, iexact, contains, icontains, regex, iregex, gt, gte, lt, lte, startswith, endswith, range, year, month, day, isnull, search, etc.
-    ordering = ['first_name', 'last_name'] # ordering in ModelAdmin class is used to define the ordering for the model in the admin site only. it will not affect the ordering in the shell.
+    ordering = ['user__first_name', 'user__last_name'] # ordering in ModelAdmin class is used to define the ordering for the model in the admin site only. it will not affect the ordering in the shell.
 # Note: editing in admin.py => ModelAdmin class is for customizing the admin interface,
 # while editing in models.py => Meta class is for configuring model behavior (like ordering, verbose_name, etc.)
 

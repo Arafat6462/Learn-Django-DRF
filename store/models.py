@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+from django.contrib import admin
 from django.core.validators import MinValueValidator
 from uuid import uuid4
 
@@ -70,15 +72,30 @@ class Customer(models.Model):
         (MEMBERSHIP_SILVER, 'Silver'),
         (MEMBERSHIP_GOLD, 'Gold'),
     ]
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
     phone = models.CharField(max_length=255)
     birth_date = models.DateField(null=True, blank=True) # null=True means the field can be null in the database, blank=True means the field is optional in forms (including admin site, don't show error for blank).
     membership = models.CharField(max_length=1, choices=MEMBERSHIP_CHOICES, default=MEMBERSHIP_BRONZE)
+
+    # Here, we dont directly reference the User model to keep this app decoupled from the authentication system.
+    # This line creates a one-to-one relationship between the Customer model and the User model specified in AUTH_USER_MODEL setting.
+    # No matter what custom user model is used in the project, this relationship will always point to the correct user model.
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    
     
     def __str__(self) -> str:
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.user.first_name} {self.user.last_name}'
+    
+    @admin.display(ordering='user__first_name') # to enable ordering by first_name in admin list view
+    def first_name(self):
+        return self.user.first_name
+    
+    @admin.display(ordering='user__last_name') # to enable ordering by last_name in admin list view
+    def last_name(self):
+        return self.user.last_name
+    
+    
+    class Meta:
+        ordering = ['user__first_name', 'user__last_name'] # ordering by related model fields using double underscore notation.
 
 
 class Order(models.Model):
