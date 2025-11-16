@@ -1,11 +1,24 @@
 from django.contrib import admin
 from store.models import Product
 from tags.models import TaggedItem
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from store.admin import ProductAdmin
 from django.contrib.contenttypes.admin import GenericTabularInline
-
+from .models import User
 # Register your models here.
 
+# Register the custom User model with the admin site
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("username", "usable_password", "password1", "password2", "email", "first_name", "last_name"),
+            },
+        ),
+    )
 
 class TagInline(GenericTabularInline): # this is used to display the related tags of a product in the product detail view. it is a tabular inline view.
     model = TaggedItem # the model to be displayed in the inline view. here, TaggedItem is the model that has a generic foreign key to the Product model. it is a reverse relationship.

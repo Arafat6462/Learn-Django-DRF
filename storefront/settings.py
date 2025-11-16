@@ -106,7 +106,7 @@ DATABASES = {
 }
 
 
-# Password validation
+# Password validationcore.User
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -156,3 +156,5 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',  
     # 'PAGE_SIZE': 10,  # default page size for pagination
 }
+
+AUTH_USER_MODEL = 'core.User'  # specify the custom user model
