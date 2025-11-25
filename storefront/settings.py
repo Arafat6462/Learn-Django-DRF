@@ -168,14 +168,16 @@ REST_FRAMEWORK = {
 # This will set the prefix the token type in the Authorization header
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME':  timedelta(days=1),  # set token lifetime as needed
+    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=5),  # set token lifetime as needed
 }
 
 AUTH_USER_MODEL = 'core.User'  # specify the custom user model
 
 # Djoser configuration to use the custom user serializer
+# Register the custom serializers for user creation and user representation
 DJOSER = { 
   'SERIALIZERS': {
     'user_create': 'core.serializers.UserCreateSerializer',
+    'current_user': 'core.serializers.UserSerializer',
   }
  }
