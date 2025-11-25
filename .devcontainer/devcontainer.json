@@ -1,0 +1,15 @@
+{
+  "name": "Django DRF Dev Container", // The name displayed in VS Code when working in the container.
+  "dockerComposeFile": "../docker-compose.yml", // Specifies the Docker Compose file to use. The path is relative to the .devcontainer folder.
+  "service": "web", // The name of the service in docker-compose.yml that VS Code should connect to.
+  "workspaceFolder": "/app", // The path inside the container where your project's source code is mounted. This should match the volume mapping in docker-compose.yml.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python" // A list of VS Code extensions to install inside the container.
+      ]
+    }
+  },
+  "forwardPorts": [8000, 5432, 8080], // Ports from the container that should be forwarded to your local machine.
+  "postCreateCommand": "pip install -r requirements.txt" // A command to run after the container is created. This ensures dependencies are installed.
+}
