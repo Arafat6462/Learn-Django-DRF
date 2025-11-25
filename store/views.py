@@ -7,12 +7,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
-from .models import Cart, OrderItem, Product, Collection, Review, CartItem
-from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer
+from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer
+from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
@@ -466,7 +466,9 @@ class CartItemViewSet(ModelViewSet):
         return CartItem.objects.filter(cart_id=self.kwargs['cart_pk']).select_related('product') # filter cart items based on the cart they belong to. cart_pk comes from the nested router's URL.
     
 
-
+class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet): # here GenericViewSet is used as the base class along with Create, Retrieve, and Update mixins to provide only those actions. this way we avoid exposing list and delete actions for customers. if we dont use GenericViewSet, we can use ModelViewSet but then we have to override the list and destroy methods to prevent listing and deleting customers.
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
 
 
 

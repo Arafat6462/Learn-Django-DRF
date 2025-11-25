@@ -1,5 +1,5 @@
 {
-  "name": "Django DRF Dev Container", // The name displayed in VS Code when working in the container.
+  "name": "DRF", // The name displayed in VS Code when working in the container.
   "dockerComposeFile": "../docker-compose.yml", // Specifies the Docker Compose file to use. The path is relative to the .devcontainer folder.
   "service": "web", // The name of the service in docker-compose.yml that VS Code should connect to.
   "workspaceFolder": "/app", // The path inside the container where your project's source code is mounted. This should match the volume mapping in docker-compose.yml.
