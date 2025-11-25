@@ -170,3 +170,10 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'core.User'  # specify the custom user model
+
+# Djoser configuration to use the custom user serializer
+DJOSER = { 
+  'SERIALIZERS': {
+    'user_create': 'core.serializers.UserCreateSerializer',
+  }
+ }
