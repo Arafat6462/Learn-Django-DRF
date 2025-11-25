@@ -180,7 +180,7 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
 
 class CustomerSerializer(serializers.ModelSerializer):
     # if we don't specify user_id here, DRF will not include it in the serialized output by default.
-    user_id = serializers.IntegerField() 
+    user_id = serializers.IntegerField(read_only=True) # read_only=True because we don't want the user to provide this value when creating or updating a customer. it will be set automatically based on the authenticated user.
 
     class Meta:
         model = Customer

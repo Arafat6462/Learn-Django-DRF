@@ -5,6 +5,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer
@@ -470,6 +471,19 @@ class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Ge
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
 
+    @action(detail=False, methods=['GET', 'PUT'])  # custom action to get the current authenticated user's customer data. detail=False means this action is not for a specific instance but for the collection.
+    def me(self, request):
+        customer = get_object_or_404(Customer, user_id=request.user.id)  # get the customer associated with the current authenticated user.
+        
+        if request.method == 'GET':
+            serializer = self.get_serializer(customer)  # serialize the customer data using the default serializer for
+            return Response(serializer.data)  # return the serialized data of the current authenticated user's customer profile.
+        
+        elif request.method == 'PUT':
+            serializer = self.get_serializer(customer, data=request.data)  # deserialize and validate incoming data to update the customer profile.
+            serializer.is_valid(raise_exception=True)  # raise exception if validation fails.
+            serializer.save()  # save the updated customer profile.
+            return Response(serializer.data)  # return the serialized data of the updated customer profile.
 
 
 
