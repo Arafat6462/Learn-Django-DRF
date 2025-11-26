@@ -161,7 +161,12 @@ REST_FRAMEWORK = {
     # Set JWT as the default authentication method
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ],
+
+    # Set default permission to IsAuthenticated for all views
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ]
 }
 
 # Djoser settings for user management

@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer
@@ -470,6 +471,13 @@ class CartItemViewSet(ModelViewSet):
 class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet): # here GenericViewSet is used as the base class along with Create, Retrieve, and Update mixins to provide only those actions. this way we avoid exposing list and delete actions for customers. if we dont use GenericViewSet, we can use ModelViewSet but then we have to override the list and destroy methods to prevent listing and deleting customers.
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated]  # ensure only authenticated users can access customer endpoints.
+
+    # Override get_permissions to allow anyone to access GET requests (e.g., for registration).
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]  # here we shuld return a list of objects not classes. but in permission_classes we return classes.
+        return [super().get_permissions()] # use default permissions for other methods (POST, PUT, etc.).
 
     @action(detail=False, methods=['GET', 'PUT'])  # custom action to get the current authenticated user's customer data. detail=False means this action is not for a specific instance but for the collection.
     def me(self, request):
