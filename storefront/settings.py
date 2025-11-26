@@ -173,7 +173,7 @@ REST_FRAMEWORK = {
 # This will set the prefix the token type in the Authorization header
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=5),  # set token lifetime as needed
+    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=3600),  # set token lifetime as needed
 }
 
 AUTH_USER_MODEL = 'core.User'  # specify the custom user model
