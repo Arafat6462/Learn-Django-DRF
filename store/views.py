@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, DjangoModelPermissions
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
-from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly
+from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer
 from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer
 from rest_framework import status
@@ -497,6 +497,10 @@ class CustomerViewSet(ModelViewSet): # here GenericViewSet is used as the base c
             serializer.save()  # save the updated customer profile.
             return Response(serializer.data)  # return the serialized data of the updated customer profile.
 
+
+    @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])  # custom action to view customer history. detail=True means this action is for a specific customer instance.
+    def history(self, request, pk):
+        return Response('ok')  # placeholder implementation for customer history action.
 
 
 

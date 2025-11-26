@@ -96,7 +96,7 @@ class Customer(models.Model):
     
     class Meta:
         ordering = ['user__first_name', 'user__last_name'] # ordering by related model fields using double underscore notation.
-
+        permissions = [('view_history', 'Can view customer history')] # custom permission to view customer history
 
 class Order(models.Model):
     PAYMENT_STATUS_PENDING = 'P'
