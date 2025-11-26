@@ -6,9 +6,10 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
+from store.permissions import IsAdminOrReadOnly
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer
 from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer
 from rest_framework import status
@@ -357,6 +358,7 @@ class collection_detail__Option_4(RetrieveUpdateDestroyAPIView):
 class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g., ProductViewSet
     queryset = Product.objects.all()  # Queryset used for all actions unless overridden.
     serializer_class = ProductSerializer  # Serializer used for all actions unless overridden.
+    permission_classes = [IsAdminOrReadOnly]  # Custom permission class to restrict write access to admin users only.
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]  # Enable filtering support using DjangoFilterBackend. SearchFilter added for search functionality. here OrderingFilter is also added to enable ordering functionality.
     # filterset_fields = ['collection_id', 'unit_price']  # Allow filtering products by collection_id via query parameters.
@@ -407,6 +409,7 @@ class ProductViewSet(ModelViewSet):  # Naming convention: <Resource>ViewSet, e.g
 class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.annotate(product_count=Count('product')).all()
     serializer_class = CollectionSerializer
+    permission_classes = [IsAdminOrReadOnly]  # Only admin users can modify collections; others have read-only access.
 
     # Override destroy to prevent deletion if the collection has related products.
     def destroy(self, request, *args, **kwargs):
@@ -468,18 +471,18 @@ class CartItemViewSet(ModelViewSet):
         return CartItem.objects.filter(cart_id=self.kwargs['cart_pk']).select_related('product') # filter cart items based on the cart they belong to. cart_pk comes from the nested router's URL.
     
 
-class CustomerViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet): # here GenericViewSet is used as the base class along with Create, Retrieve, and Update mixins to provide only those actions. this way we avoid exposing list and delete actions for customers. if we dont use GenericViewSet, we can use ModelViewSet but then we have to override the list and destroy methods to prevent listing and deleting customers.
+class CustomerViewSet(ModelViewSet): # here GenericViewSet is used as the base class along with Create, Retrieve, and Update mixins to provide only those actions. this way we avoid exposing list and delete actions for customers. if we dont use GenericViewSet, we can use ModelViewSet but then we have to override the list and destroy methods to prevent listing and deleting customers.
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [IsAuthenticated]  # ensure only authenticated users can access customer endpoints.
+    permission_classes = [IsAdminUser]  # ensure only authenticated users can access customer endpoints.
 
     # Override get_permissions to allow anyone to access GET requests (e.g., for registration).
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]  # here we shuld return a list of objects not classes. but in permission_classes we return classes.
-        return [super().get_permissions()] # use default permissions for other methods (POST, PUT, etc.).
+        return super().get_permissions() # use default permissions for other methods (POST, PUT, etc.).
 
-    @action(detail=False, methods=['GET', 'PUT'])  # custom action to get the current authenticated user's customer data. detail=False means this action is not for a specific instance but for the collection.
+    @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])  # custom action to get the current authenticated user's customer data. detail=False means this action is not for a specific instance but for the collection.
     def me(self, request):
         customer = get_object_or_404(Customer, user_id=request.user.id)  # get the customer associated with the current authenticated user.
         
