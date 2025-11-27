@@ -504,9 +504,18 @@ class CustomerViewSet(ModelViewSet): # here GenericViewSet is used as the base c
 
 
 class OrderViewSet(ModelViewSet):
-    queryset = Order.objects.all()
+    # queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]  # only authenticated users can access order endpoints.
 
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_staff:
+            return Order.objects.all()  # admin users can see all orders.
+
+        (customer_id, created) = Customer.objects.only('id').get_or_create(user_id=user.id)        
+        return Order.objects.filter(customer_id=customer_id)  # regular users can see only their own orders.
 
 
 
