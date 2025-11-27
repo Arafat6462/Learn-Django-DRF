@@ -508,13 +508,21 @@ class OrderViewSet(ModelViewSet):
     # serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]  # only authenticated users can access order endpoints.
 
+    def create(self, request, *args, **kwargs):
+        serializer = CreateOrderSerializer(
+            data=request.data,
+            context = {'user_id': self.request.user.id}
+            )
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+
+
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer # use CreateOrderSerializer for creating orders
         return OrderSerializer  # use OrderSerializer for other actions (list, retrieve, etc.)
-
-    def get_serializer_context(self):
-        return {'user_id': self.request.user.id}
 
     def get_queryset(self):
         user = self.request.user
