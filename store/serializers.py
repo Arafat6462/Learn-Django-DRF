@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import transaction
 from rest_framework import serializers
 from store.models import Cart, CartItem, Product, Collection, Review, Customer, Order, OrderItem
+from .signals import order_created
 
 # DRF serializers are responsible for transforming complex data (like Django models) into native Python datatypes. This makes it easy to render data as JSON, XML, etc.
 # Serializers also handle deserialization: they validate and transform incoming data (such as JSON from an API request) back into Python objects or Django models.
@@ -239,5 +240,7 @@ class CreateOrderSerializer(serializers.Serializer):
             OrderItem.objects.bulk_create(order_items)
 
             Cart.objects.filter(pk=cart_id).delete()
+
+            order_created.send_robust(self.__class__, order=order)  # send the order_created signal after successfully creating an order. using send_robust to ensure that exceptions in signal handlers do not affect the main flow.
 
             return order

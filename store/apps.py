@@ -7,4 +7,4 @@ class StoreConfig(AppConfig):
 
     # Override the ready method to import signals
     def ready(self):
-        import store.signals
+        import store.signals.handlers
