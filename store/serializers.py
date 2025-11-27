@@ -203,6 +203,12 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
 
 
+class UpdateOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['payment_status']
+
+
 class CreateOrderSerializer(serializers.Serializer):
     with transaction.atomic(): # ensure that the entire order creation process is atomic. if any part fails, the entire transaction will be rolled back to maintain data integrity.
         cart_id = serializers.UUIDField()

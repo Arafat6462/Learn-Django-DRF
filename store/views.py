@@ -11,7 +11,7 @@ from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer, Order
-from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer, CreateOrderSerializer
+from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer, CreateOrderSerializer, UpdateOrderSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
@@ -528,6 +528,8 @@ class OrderViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer # use CreateOrderSerializer for creating orders
+        elif self.request.method == 'PATCH':
+            return UpdateOrderSerializer  # use UpdateOrderSerializer for updating orders
         return OrderSerializer  # use OrderSerializer for other actions (list, retrieve, etc.)
 
     def get_queryset(self):
