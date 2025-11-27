@@ -11,7 +11,7 @@ from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer, Order
-from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer
+from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer, CreateOrderSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
@@ -505,8 +505,16 @@ class CustomerViewSet(ModelViewSet): # here GenericViewSet is used as the base c
 
 class OrderViewSet(ModelViewSet):
     # queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    # serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]  # only authenticated users can access order endpoints.
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreateOrderSerializer # use CreateOrderSerializer for creating orders
+        return OrderSerializer  # use OrderSerializer for other actions (list, retrieve, etc.)
+
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.id}
 
     def get_queryset(self):
         user = self.request.user
