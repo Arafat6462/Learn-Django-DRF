@@ -207,6 +207,14 @@ class CreateOrderSerializer(serializers.Serializer):
     with transaction.atomic(): # ensure that the entire order creation process is atomic. if any part fails, the entire transaction will be rolled back to maintain data integrity.
         cart_id = serializers.UUIDField()
 
+        def validate_cart_id(self, cart_id):
+            if not Cart.objects.filter(pk=cart_id).exists():
+                raise serializers.ValidationError('No cart with the given id was found.')
+            if CartItem.objects.filter(cart_id=cart_id).count() == 0:
+                raise serializers.ValidationError('The cart is empty.')
+            return cart_id
+
+
         def save(self, **kwargs):
             cart_id = self.validated_data['cart_id']
 
