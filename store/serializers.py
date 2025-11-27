@@ -1,6 +1,6 @@
 from decimal import Decimal
 from rest_framework import serializers
-from store.models import Cart, CartItem, Product, Collection, Review, Customer
+from store.models import Cart, CartItem, Product, Collection, Review, Customer, Order, OrderItem
 
 # DRF serializers are responsible for transforming complex data (like Django models) into native Python datatypes. This makes it easy to render data as JSON, XML, etc.
 # Serializers also handle deserialization: they validate and transform incoming data (such as JSON from an API request) back into Python objects or Django models.
@@ -185,3 +185,18 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['id', 'user_id', 'phone', 'birth_date', 'membership'] 
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = SimpleProductSerializer() # nested serializer to show product details in the order item
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product', 'quantity', 'unit_price']
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True) # specify the reverse relation name (default <model>_set) if no related_name is set on the OrderItem FK
+    
+    class Meta:
+        model = Order
+        fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']

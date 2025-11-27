@@ -10,8 +10,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, D
 from store.filters import ProductFilter
 from store.pagination import DefaultPagination
 from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
-from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer
-from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer
+from .models import Cart, OrderItem, Product, Collection, Review, CartItem, Customer, Order
+from .serializers import AddCartItemSerializer, CartSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, OrderSerializer
 from rest_framework import status
 from django.db.models import Count
 from rest_framework.views import APIView
@@ -503,7 +503,9 @@ class CustomerViewSet(ModelViewSet): # here GenericViewSet is used as the base c
         return Response('ok')  # placeholder implementation for customer history action.
 
 
-
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
 
 
 

@@ -15,6 +15,7 @@ router.register('products', views.ProductViewSet, basename='products') # 'produc
 router.register('collections', views.CollectionViewSet)
 router.register('carts', views.CartViewSet) # registering CartViewSet to handle cart-related endpoints
 router.register('customers', views.CustomerViewSet) # registering CustomerViewSet to handle customer-related endpoints
+router.register('orders', views.OrderViewSet) # registering OrderViewSet to handle order-related endpoints
 
 # Print the generated URLs for debugging purposes.
 # pprint(router.urls)

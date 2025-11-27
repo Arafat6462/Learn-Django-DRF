@@ -119,7 +119,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     # in Order model, django will automatically create a reverse relationship as orderitem_set unless specified otherwise. this can be changed by adding related_name parameter in ForeignKey
-    order = models.ForeignKey(Order, on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='items') # adding related_name to access order items of an order using order.items instead of order.orderitem_set
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orderitems') # adding related_name to avoid conflict with promotions field in Product model. now we can access order items of a product using product.orderitems instead of product.orderitem_set.
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
